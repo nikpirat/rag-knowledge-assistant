@@ -98,3 +98,19 @@ class TestChunkDocument:
 
     def test_empty_input_returns_no_chunks(self) -> None:
         assert chunk_document([], source_document="test.pdf") == []
+
+    def test_table_of_contents_section_is_excluded(self) -> None:
+        lines = [
+            _line("Table of Contents", 16.0),
+            _line("Abstract .......................... 1", 11.0),
+            _line("Introduction ...................... 3", 11.0),
+            _line("REL01-BP01 A real practice", 16.0),
+            _line("Real body content here.", 11.0),
+        ]
+
+        chunks = chunk_document(lines, source_document="test.pdf")
+
+        headings = {c.section_heading for c in chunks}
+        assert "Table of Contents" not in headings
+        assert "REL01-BP01 A real practice" in headings
+        assert len(chunks) == 1

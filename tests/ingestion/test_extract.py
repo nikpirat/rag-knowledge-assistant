@@ -11,7 +11,7 @@ from pathlib import Path
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
-from rag_knowledge_assistant.ingestion.extract import extract_lines
+from rag_knowledge_assistant.ingestion.extract import Line, extract_lines, filter_boilerplate_lines
 
 
 def _build_test_pdf(path: Path) -> None:
@@ -66,3 +66,47 @@ class TestExtractLines:
 
         lines = extract_lines(pdf_path)
         assert lines == []
+
+
+class TestFilterBoilerplateLines:
+    def test_removes_line_repeating_across_most_pages(self) -> None:
+        lines = []
+        for page in range(1, 11):
+            lines.append(Line(text="Running Header Text", font_size=10.0, page_number=page))
+            lines.append(
+                Line(text=f"Unique body content page {page}", font_size=11.0, page_number=page)
+            )
+
+        filtered = filter_boilerplate_lines(lines, threshold=0.2)
+
+        remaining_texts = {line.text for line in filtered}
+        assert "Running Header Text" not in remaining_texts
+        assert all(f"Unique body content page {p}" in remaining_texts for p in range(1, 11))
+
+    def test_keeps_line_below_threshold(self) -> None:
+        lines = [Line(text="Rare line", font_size=11.0, page_number=1)]
+        for page in range(2, 11):
+            lines.append(Line(text=f"Body {page}", font_size=11.0, page_number=page))
+
+        filtered = filter_boilerplate_lines(lines, threshold=0.2)
+
+        assert "Rare line" in {line.text for line in filtered}
+
+    def test_empty_input_returns_empty(self) -> None:
+        assert filter_boilerplate_lines([]) == []
+
+    def test_short_document_does_not_strip_all_content(self) -> None:
+        """The real bug this guards against: on a 1-page document, every
+        line trivially appears on 100% of pages. Without an absolute
+        occurrence floor (not just a fraction), this would wrongly strip
+        all content from short documents - found via a genuinely failing
+        test against a single-page synthetic PDF, not anticipated upfront.
+        """
+        lines = [
+            Line(text="Heading", font_size=16.0, page_number=1),
+            Line(text="Body content.", font_size=11.0, page_number=1),
+        ]
+
+        filtered = filter_boilerplate_lines(lines, threshold=0.2)
+
+        assert len(filtered) == 2

@@ -55,3 +55,55 @@ def extract_lines(pdf_path: Path) -> list[Line]:
 
     logger.info("Extracted %d lines from %s", len(lines), pdf_path)
     return lines
+
+
+def filter_boilerplate_lines(
+    lines: list[Line], threshold: float = 0.2, min_occurrences: int = 3
+) -> list[Line]:
+    """Remove lines that repeat identically across many pages - running
+    headers/footers, not real content.
+
+    Detected statistically (a line's text appearing on more than
+    `threshold` fraction of the document's pages), not by matching a
+    specific known header string - this generalizes to any document's
+    own boilerplate, discovered empirically against the real AWS
+    Well-Architected white papers, which repeat a running header like
+    "{Pillar Name} AWS Well-Architected Framework" on nearly every page.
+
+    Repetition is measured as "fraction of DISTINCT PAGES this text
+    appears on", not raw occurrence count - a line appearing twice on one
+    page shouldn't count as more suspicious than appearing once.
+
+    Requires BOTH the fraction threshold AND a minimum absolute page
+    count (min_occurrences) before flagging something as boilerplate.
+    Fraction alone breaks down on short documents: on a single-page
+    document, every line trivially appears on "100% of pages" - without
+    an absolute floor, this would strip all content from short inputs,
+    a real bug caught by testing against a genuinely short synthetic PDF.
+    """
+    if not lines:
+        return lines
+
+    total_pages = len({line.page_number for line in lines})
+    if total_pages == 0:
+        return lines
+
+    pages_by_text: dict[str, set[int]] = {}
+    for line in lines:
+        pages_by_text.setdefault(line.text, set()).add(line.page_number)
+
+    boilerplate_texts = {
+        text
+        for text, pages in pages_by_text.items()
+        if len(pages) / total_pages > threshold and len(pages) >= min_occurrences
+    }
+
+    if boilerplate_texts:
+        logger.info(
+            "Filtered %d boilerplate line(s) repeating across >%.0f%% of pages: %s",
+            len(boilerplate_texts),
+            threshold * 100,
+            boilerplate_texts,
+        )
+
+    return [line for line in lines if line.text not in boilerplate_texts]

@@ -19,6 +19,13 @@ logger = logging.getLogger(__name__)
 HEADING_SIZE_RATIO = 1.15  # heading font must be >=15% larger than body text
 MAX_CHUNK_CHARS = 2000  # ~500 tokens at ~4 chars/token, a common RAG default
 CHUNK_OVERLAP_CHARS = 200  # ~50 tokens
+# Sections that are structurally "headed" (large-font title) but never
+# useful for retrieval — a table of contents is dot-leaders and page
+# numbers, not answerable content, and its best-practice *titles* could
+# otherwise falsely vector-match a real question about that topic,
+# competing with the actual detailed answer elsewhere in the document.
+# Discovered empirically against the real corpus, not guessed upfront.
+EXCLUDED_SECTION_HEADINGS = {"table of contents", "contents"}
 
 
 @dataclass(frozen=True)
@@ -30,6 +37,10 @@ class Chunk:
     source_document: str
     page_number: int
     chunk_index: int
+
+
+def _is_excluded_section(heading: str) -> bool:
+    return heading.strip().lower() in EXCLUDED_SECTION_HEADINGS
 
 
 def _detect_body_font_size(lines: list[Line]) -> float:
@@ -88,7 +99,12 @@ def chunk_document(lines: list[Line], source_document: str) -> list[Chunk]:
 
     chunks: list[Chunk] = []
     chunk_index = 0
+    excluded_count = 0
     for heading, section_lines in sections:
+        if _is_excluded_section(heading):
+            excluded_count += 1
+            continue
+
         section_text = "\n".join(line.text for line in section_lines)
         page_number = section_lines[0].page_number if section_lines else 0
 
@@ -105,9 +121,10 @@ def chunk_document(lines: list[Line], source_document: str) -> list[Chunk]:
             chunk_index += 1
 
     logger.info(
-        "Chunked %s into %d chunks across %d detected sections",
+        "Chunked %s into %d chunks across %d detected sections (%d excluded as non-content)",
         source_document,
         len(chunks),
         len(sections),
+        excluded_count,
     )
     return chunks

@@ -8,7 +8,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from rag_knowledge_assistant.ingestion.chunk import chunk_document
-from rag_knowledge_assistant.ingestion.extract import extract_lines
+from rag_knowledge_assistant.ingestion.extract import extract_lines, filter_boilerplate_lines
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,7 @@ def run_ingestion(raw_dir: Path, output_path: Path) -> int:
     with output_path.open("w", encoding="utf-8") as f:
         for pdf_path in pdf_paths:
             lines = extract_lines(pdf_path)
+            lines = filter_boilerplate_lines(lines)
             chunks = chunk_document(lines, source_document=pdf_path.name)
 
             for chunk in chunks:
