@@ -5,11 +5,13 @@ description = "Enterprise document Q&A (RAG) system over AWS Well-Architected wh
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "fastapi>=0.141.1",
     "httpx>=0.28.1",
     "pdfplumber>=0.11.10",
     "pydantic>=2.9",
     "pydantic-settings>=2.6",
     "qdrant-client>=1.19.0",
+    "uvicorn[standard]>=0.52.4",
 ]
 
 [project.scripts]

@@ -20,10 +20,9 @@ from typing import Any, cast
 
 import httpx
 
-logger = logging.getLogger(__name__)
+from rag_knowledge_assistant.config.settings import settings
 
-DEFAULT_MODEL = "qwen3-embedding:0.6b"
-DEFAULT_BASE_URL = "http://localhost:11434"
+logger = logging.getLogger(__name__)
 
 QUERY_INSTRUCTION = (
     "Instruct: Given a question about system architecture and best "
@@ -51,8 +50,8 @@ def _call_ollama_embed(
 
 def embed_documents(
     texts: list[str],
-    model: str = DEFAULT_MODEL,
-    base_url: str = DEFAULT_BASE_URL,
+    model: str = settings.generation_model,
+    base_url: str = settings.ollama_base_url,
     timeout: float = 60.0,
 ) -> list[list[float]]:
     """Embed document/passage text. No instruction prefix — Qwen3-Embedding's
@@ -65,8 +64,8 @@ def embed_documents(
 
 def embed_query(
     text: str,
-    model: str = DEFAULT_MODEL,
-    base_url: str = DEFAULT_BASE_URL,
+    model: str = settings.generation_model,
+    base_url: str = settings.ollama_base_url,
     timeout: float = 60.0,
 ) -> list[float]:
     """Embed a search query, with the instruction prefix Qwen3-Embedding's

@@ -10,6 +10,7 @@ from pathlib import Path
 
 from qdrant_client import QdrantClient
 
+from rag_knowledge_assistant.config.settings import settings
 from rag_knowledge_assistant.embeddings.ollama_embedder import embed_documents
 from rag_knowledge_assistant.ingestion.chunk import Chunk
 from rag_knowledge_assistant.retrieval.store import create_collection, index_chunks
@@ -17,7 +18,6 @@ from rag_knowledge_assistant.retrieval.store import create_collection, index_chu
 logger = logging.getLogger(__name__)
 
 BATCH_SIZE = 32
-COLLECTION_NAME = "well_architected_chunks"
 
 
 def _load_chunks(jsonl_path: Path) -> list[Chunk]:
@@ -32,7 +32,7 @@ def _load_chunks(jsonl_path: Path) -> list[Chunk]:
 def run_indexing(
     chunks_path: Path,
     qdrant_path: Path,
-    collection_name: str = COLLECTION_NAME,
+    collection_name: str = settings.qdrant_collection_name,
     batch_size: int = BATCH_SIZE,
 ) -> int:
     """Embed and index every chunk. Returns the total number of points written."""
@@ -62,8 +62,8 @@ def run_indexing(
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
     total = run_indexing(
-        chunks_path=Path("data/processed/chunks.jsonl"),
-        qdrant_path=Path("qdrant_storage"),
+        chunks_path=Path(settings.chunks_path),
+        qdrant_path=Path(settings.qdrant_path),
     )
     print(f"Total chunks indexed: {total}")
 
