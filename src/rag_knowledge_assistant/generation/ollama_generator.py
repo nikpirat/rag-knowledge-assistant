@@ -13,13 +13,11 @@ from typing import Any
 
 import httpx
 
+from rag_knowledge_assistant.config.settings import settings
 from rag_knowledge_assistant.generation.prompt import build_messages
 from rag_knowledge_assistant.retrieval.store import SearchResult
 
 logger = logging.getLogger(__name__)
-
-DEFAULT_MODEL = "qwen3:8b"
-DEFAULT_BASE_URL = "http://localhost:11434"
 
 CITATION_PATTERN = re.compile(r"\[(\d+)]")
 
@@ -105,8 +103,8 @@ def _call_chat(
 def generate_answer(
     question: str,
     results: list[SearchResult],
-    model: str = DEFAULT_MODEL,
-    base_url: str = DEFAULT_BASE_URL,
+    model: str = settings.generation_model,
+    base_url: str = settings.ollama_base_url,
     timeout: float = 300.0,
     repeat_penalty: float | None = None,
     max_retries: int = 1,
