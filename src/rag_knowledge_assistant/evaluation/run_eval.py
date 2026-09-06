@@ -135,7 +135,7 @@ def run_evaluation(output_path: Path) -> list[dict[str, Any]]:
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
     results = run_evaluation(
-        Path(f"reports/evaluation_results_{datetime.now().strftime("%Y-%m-%d")}.csv")
+        Path(f"reports/evaluation_results_{datetime.now().strftime('%Y-%m-%d')}.csv")
     )
 
     if not results:
