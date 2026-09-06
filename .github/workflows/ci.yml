@@ -32,3 +32,11 @@ jobs:
 
       - name: Run tests with coverage
         run: uv run pytest
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build API image
+        run: docker build -t rag-knowledge-assistant-api:ci -f Dockerfile .

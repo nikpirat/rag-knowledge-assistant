@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 
 import pytest
+from qdrant_client import QdrantClient
 
 from rag_knowledge_assistant.retrieval import index_corpus
 
@@ -44,7 +45,7 @@ class TestRunIndexing:
 
         total = index_corpus.run_indexing(
             chunks_path=chunks_path,
-            qdrant_path=tmp_path / "qdrant",
+            qdrant_client_builder=lambda: QdrantClient(path=str(tmp_path / "qdrant")),
             batch_size=4,
         )
 
@@ -56,4 +57,7 @@ class TestRunIndexing:
         chunks_path.write_text("")
 
         with pytest.raises(ValueError, match="No chunks found"):
-            index_corpus.run_indexing(chunks_path=chunks_path, qdrant_path=tmp_path / "qdrant")
+            index_corpus.run_indexing(
+                chunks_path=chunks_path,
+                qdrant_client_builder=lambda: QdrantClient(path=str(tmp_path / "qdrant")),
+            )

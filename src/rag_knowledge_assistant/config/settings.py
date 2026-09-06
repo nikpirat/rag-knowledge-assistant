@@ -19,7 +19,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    qdrant_path: str = "qdrant_storage"
+    qdrant_url: str = "http://localhost:6333"
     chunks_path: str = "data/processed/chunks.jsonl"
     qdrant_collection_name: str = "well_architected_chunks"
     ollama_base_url: str = "http://localhost:11434"

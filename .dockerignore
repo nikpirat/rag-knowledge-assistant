@@ -1,0 +1,16 @@
+.venv
+.git
+.github
+.pytest_cache
+.mypy_cache
+.ruff_cache
+__pycache__
+*.pyc
+
+data/
+reports/
+qdrant_storage/
+
+.env
+tests/
+docs/

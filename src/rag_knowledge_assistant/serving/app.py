@@ -49,7 +49,7 @@ class AskResponse(BaseModel):
 
 
 def _default_qdrant_client_builder() -> QdrantClient:
-    return QdrantClient(path=settings.qdrant_path)
+    return QdrantClient(url=settings.qdrant_url)
 
 
 def create_app(
@@ -68,11 +68,15 @@ def create_app(
             real Ollama/Qdrant-backed implementations; tests pass fakes
             so the test suite needs no live Ollama or populated Qdrant
             collection to pass.
+            :param generate_answer_fn:
+            :param search_fn:
+            :param qdrant_client_builder:
+            :param embed_query_fn:
     """
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        logger.info("Connecting to Qdrant at %s...", settings.qdrant_path)
+        logger.info("Connecting to Qdrant at %s...", settings.qdrant_url)
         app.state.qdrant_client = qdrant_client_builder()
         yield
 

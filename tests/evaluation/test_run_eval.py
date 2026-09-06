@@ -33,7 +33,7 @@ class TestRunEvaluation:
     ) -> None:
         fake_questions = ["Question one?", "Question two?"]
         monkeypatch.setattr(run_eval, "EVAL_QUESTIONS", fake_questions)
-        monkeypatch.setattr(run_eval, "QdrantClient", lambda path: object())
+        monkeypatch.setattr(run_eval, "QdrantClient", lambda url: object())
         monkeypatch.setattr(run_eval, "embed_query", lambda *a, **k: [0.1, 0.2])
         monkeypatch.setattr(run_eval, "search", lambda *a, **k: [_fake_search_result()])
         monkeypatch.setattr(
@@ -66,7 +66,7 @@ class TestRunEvaluation:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setattr(run_eval, "EVAL_QUESTIONS", [])
-        monkeypatch.setattr(run_eval, "QdrantClient", lambda path: object())
+        monkeypatch.setattr(run_eval, "QdrantClient", lambda url: object())
 
         output_path = tmp_path / "results.csv"
         results = run_eval.run_evaluation(output_path)
@@ -84,7 +84,7 @@ class TestRunEvaluation:
         from being evaluated and saved."""
         fake_questions = ["Good question one?", "Bad question?", "Good question two?"]
         monkeypatch.setattr(run_eval, "EVAL_QUESTIONS", fake_questions)
-        monkeypatch.setattr(run_eval, "QdrantClient", lambda path: object())
+        monkeypatch.setattr(run_eval, "QdrantClient", lambda url: object())
         monkeypatch.setattr(run_eval, "embed_query", lambda *a, **k: [0.1, 0.2])
         monkeypatch.setattr(run_eval, "search", lambda *a, **k: [_fake_search_result()])
 

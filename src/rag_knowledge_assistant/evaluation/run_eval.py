@@ -22,6 +22,7 @@ rather than crashing or silently ignoring it.
 
 import csv
 import logging
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -92,7 +93,7 @@ def run_evaluation(output_path: Path) -> list[dict[str, Any]]:
     'error' column rather than silently dropped, so a failure is visible
     in the report rather than just missing.
     """
-    client = QdrantClient(path=settings.qdrant_path)
+    client = QdrantClient(url=settings.qdrant_url)
     results_rows: list[dict[str, Any]] = []
 
     for question in EVAL_QUESTIONS:
@@ -133,7 +134,9 @@ def run_evaluation(output_path: Path) -> list[dict[str, Any]]:
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
-    results = run_evaluation(Path("reports/evaluation_results.csv"))
+    results = run_evaluation(
+        Path(f"reports/evaluation_results_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv")
+    )
 
     if not results:
         print("No results produced.")

@@ -6,6 +6,7 @@ HTTP round-trip overhead against Ollama.
 
 import json
 import logging
+from collections.abc import Callable
 from pathlib import Path
 
 from qdrant_client import QdrantClient
@@ -29,18 +30,34 @@ def _load_chunks(jsonl_path: Path) -> list[Chunk]:
     return chunks
 
 
+def _default_qdrant_client_builder() -> QdrantClient:
+    return QdrantClient(url=settings.qdrant_url)
+
+
 def run_indexing(
     chunks_path: Path,
-    qdrant_path: Path,
+    qdrant_client_builder: Callable[[], QdrantClient] = _default_qdrant_client_builder,
     collection_name: str = settings.qdrant_collection_name,
     batch_size: int = BATCH_SIZE,
 ) -> int:
-    """Embed and index every chunk. Returns the total number of points written."""
+    """Embed and index every chunk. Returns the total number of points written.
+
+    Args:
+        qdrant_client_builder: producer of the Qdrant client. Defaults to
+            a real server connection via Settings (Phase 6: containerized
+            Qdrant, not local/embedded mode); tests pass a builder pointed
+            at a temp local-mode client instead, same dependency-injection
+            pattern used in serving/app.py.
+            :param batch_size:
+            :param collection_name:
+            :param qdrant_client_builder:
+            :param chunks_path:
+    """
     chunks = _load_chunks(chunks_path)
     if not chunks:
         raise ValueError(f"No chunks found in {chunks_path}")
 
-    client = QdrantClient(path=str(qdrant_path))
+    client = qdrant_client_builder()
     create_collection(client, collection_name)
 
     total_indexed = 0
@@ -61,10 +78,7 @@ def run_indexing(
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
-    total = run_indexing(
-        chunks_path=Path(settings.chunks_path),
-        qdrant_path=Path(settings.qdrant_path),
-    )
+    total = run_indexing(chunks_path=Path(settings.chunks_path))
     print(f"Total chunks indexed: {total}")
 
 

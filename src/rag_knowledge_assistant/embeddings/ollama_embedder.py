@@ -50,7 +50,7 @@ def _call_ollama_embed(
 
 def embed_documents(
     texts: list[str],
-    model: str = settings.generation_model,
+    model: str = settings.embedding_model,
     base_url: str = settings.ollama_base_url,
     timeout: float = 60.0,
 ) -> list[list[float]]:
@@ -64,7 +64,7 @@ def embed_documents(
 
 def embed_query(
     text: str,
-    model: str = settings.generation_model,
+    model: str = settings.embedding_model,
     base_url: str = settings.ollama_base_url,
     timeout: float = 60.0,
 ) -> list[float]:
